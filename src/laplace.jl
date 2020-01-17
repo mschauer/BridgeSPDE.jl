@@ -54,7 +54,7 @@ end
 
 function boundary(A)
     m, n = size(A)
-    B = zeros(A)
+    B = zero(A)
     for i in 1:m
         for j in 1:n
             v = A[i,j]
