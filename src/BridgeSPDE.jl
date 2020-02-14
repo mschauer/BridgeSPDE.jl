@@ -13,9 +13,10 @@ export downsample, boundary
 export Euler
 export sparsity
 
+include("sparse.jl")
 include("laplace.jl")
 include("ornsteinuhlenbeck.jl")
-include("sparse.jl")
+
 include("sidrs.jl")
 include("gaussian.jl")
 end # module

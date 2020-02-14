@@ -21,7 +21,10 @@ using Printf
 end
 
 #s = 8, , ,
-function sidrs!(X0, A, C::T; s::Number = 4, tol=10sqrt(eps(real(eltype(C)))), droptol=(eps(real(eltype(C)))), maxiter=size(A, 2), verbose::Bool=false) where {T}
+function sidrs!(X0, A, C::T; s::Number = 4, tol=missing, droptol=(eps(real(eltype(C)))), maxiter=size(A, 2), verbose::Bool=false) where {T}
+	if ismissing(tol)
+		tol = 10sqrt(eps(real(eltype(C))))
+	end
 	verbose && @show tol
 	X = X0
 
@@ -128,9 +131,9 @@ end
 slyap_op(B) = X -> B*X + X*B'
 linl_op(B) = X -> B*X
 linr_op(B) = X -> X*B
-slyapunov(B, C; droptol = 1e-7) = sidrs!(copy(C), slyap_op(B), -C; maxiter=prod(size(B)), verbose=true, droptol = droptol)
-slsolve(B, Y; droptol = 1e-7) = sidrs!(copy(Y), linl_op(B), Y; maxiter=prod(size(B)), verbose=true, droptol = droptol)
-srsolve(B, Y; droptol = 1e-7) = sidrs!(copy(Y), linr_op(B), Y; maxiter=prod(size(B)), verbose=true, droptol = droptol)
+slyapunov(B, C; tol=missing, droptol = 1e-7) = sidrs!(copy(C), slyap_op(B), -C; maxiter=prod(size(B)), verbose=true, tol=tol, droptol = droptol)
+slsolve(B, Y; tol=missing, droptol = 1e-7) = sidrs!(copy(Y), linl_op(B), Y; maxiter=prod(size(B)), verbose=true, tol=tol, droptol = droptol)
+srsolve(B, Y; tol=missing, droptol = 1e-7) = sidrs!(copy(Y), linr_op(B), Y; maxiter=prod(size(B)), verbose=true, tol=tol, droptol = droptol)
 
 
 """

@@ -1,7 +1,5 @@
 
 
-downsample(x, s = 10) = [mean(x[i:i+s-1,j:j+s-1]) for i in 1:s:size(x,1)-s, j in 1:s:size(x, 2)-s]
-
 """
 Graph Laplacian of the line graph. With keyword `boundary = false`,
 a graph Laplacian of the circle.
@@ -18,8 +16,8 @@ end
 """
 Graph Laplacian of a `m×n` lattice.
 """
-function gridlaplacian(m, n)
-    S = sparse(0.0I, n*m, n*m)
+function gridlaplacian(T, m, n)
+    S = sparse(T(0.0)I, n*m, n*m)
     linear = LinearIndices((1:m, 1:n))
     for i in 1:m
         for j in 1:n
@@ -37,11 +35,11 @@ function gridlaplacian(m, n)
     S
 end
 
-function gridderiv(m, n)
-    S1 = sparse(0.0I, n*m, n*m)
-    S2 = sparse(0.0I, n*m, n*m)
-    S3 = sparse(0.0I, n*m, n*m)
-    S4 = sparse(0.0I, n*m, n*m)
+function gridderiv(T, m, n)
+    S1 = sparse(T(0.0)*I, n*m, n*m)
+    S2 = sparse(T(0.0)*I, n*m, n*m)
+    S3 = sparse(T(0.0)*I, n*m, n*m)
+    S4 = sparse(T(0.0)*I, n*m, n*m)
 
     linear = LinearIndices((1:m, 1:n))
     for i in 1:m
