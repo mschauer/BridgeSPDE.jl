@@ -11,7 +11,11 @@ import DynamicIterators: evolve, dyniterate
 export gridderiv, gridlaplacian, OrnsteinUhlenbeck, b, riccatti
 export downsample, boundary
 export Euler
+export sparsity
 
 include("laplace.jl")
 include("ornsteinuhlenbeck.jl")
+include("sparse.jl")
+include("sidrs.jl")
+include("gaussian.jl")
 end # module

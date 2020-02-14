@@ -2,7 +2,22 @@
 
 downsample(x, s = 10) = [mean(x[i:i+s-1,j:j+s-1]) for i in 1:s:size(x,1)-s, j in 1:s:size(x, 2)-s]
 
+"""
+Graph Laplacian of the line graph. With keyword `boundary = false`,
+a graph Laplacian of the circle.
+"""
+linelaplacian(n; kwargs...) = linelaplacian(Float64,n; kwargs...)
+function linelaplacian(T,n; boundary=true)
+    A = SymTridiagonal(2ones(T,n), -ones(T,n-1))
+    if boundary
+        A[1,1] = A[end,end] = true
+    end
+    A
+end
 
+"""
+Graph Laplacian of a `m×n` lattice.
+"""
 function gridlaplacian(m, n)
     S = sparse(0.0I, n*m, n*m)
     linear = LinearIndices((1:m, 1:n))

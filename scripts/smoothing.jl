@@ -1,7 +1,9 @@
-using Makie
+#using Makie
+using Revise
 using Test
 using Kalman
-using SuiteSparse
+using SparseArrays
+#using SuiteSparse
 using BridgeSPDE
 using FileIO
 using Base.Iterators: flatten
@@ -10,6 +12,7 @@ using LinearAlgebra
 using GaussianDistributions
 using Trajectories
 using Colors
+PLOT = false
 
 @assert isfile(joinpath("src", "BridgeSPDE.jl"))
 
@@ -20,17 +23,16 @@ m, n = size(x)
 mat(x) = reshape(x, (m, n))
 J1 = Matrix(gridderiv(m, n)[1])
 J2t = Matrix(gridderiv(m, n)[4])
-image([mat(vec(x) + J2t*vec(x))  x])
+PLOT && image([mat(vec(x) + J2t*vec(x))  x])
 
 
 
-sparsity(B) = nnz(B)/length(B)
 
 
-downscale = 4
+downscale = 2 # was 4
 meteosat = [ downsample(Float64.(FileIO.load(joinpath(@__DIR__, "..","data", "meteosatf$frame.png"))), downscale) for frame in [33, 35, 40, 45]]
 y = meteosat[1]
-image(y, scale_plot = false)
+PLOT && image(y, scale_plot = false)
 
 m, n = size(y)
 
@@ -40,10 +42,10 @@ J2t = gridderiv(m, n)[4]
 img(x) = image(reshape(x, (m, n)))
 mat(x) = reshape(x, (m, n))
 
-image(hcat( meteosat...))
+PLOT && image(hcat( meteosat...))
+# how much are 8 units of shifts?
 JJ = (I + J2t)^8*(I + J1)^8
-image([meteosat[1] mat(JJ*vec(meteosat[1])) meteosat[4]])
-8/3
+PLOT && image([meteosat[1] mat(JJ*vec(meteosat[1])) meteosat[4]])
 
 d = m*n
 Λ = gridlaplacian(m, n) + I
@@ -70,6 +72,8 @@ l2 = div(l, 2)
 shape = (l2, l2, l2, l2, l2, l2)
 
 dt = Δt / l
+droptol = 1e-8
+droptoli = 1e-8
 
 θ1, θ2 = 0.0, 0.0
 for iter in 1:3
@@ -77,25 +81,38 @@ for iter in 1:3
     t = T
     ν, P = copy(q0), copy(Q0)
 
-    B = -σ^2*0.5*Λ*Λ + θ1*J1 + θ2*J2t
+    #B = -σ^2*0.5*Λ*Λ + θ1*J1 + θ2*J2t
+    B = -σ^2*0.5*Λ + θ1*J1 + θ2*J2t
+
     Bt = typeof(B)(B')
 
 
-    (ν, P), _ = Kalman.correct(Kalman.JosephForm(), Gaussian(ν, P), (Gaussian(vec(meteosat[end]), R), H))
-    image(reshape(ν, (m, n)))
+    @time (ν_, P_), _ = Kalman.correct(Kalman.JosephForm(), Gaussian(ν, P), (Gaussian(vec(meteosat[end]), R), H))
+    @time (ν, P), _ = BridgeSPDE.correct((ν, sparse(P)), (vec(meteosat[end]), sparse(R, d,d)), H, droptol=droptoli)
+
+    droptol!(P, droptol)
+    @test norm(P - P_) < 1e-8
+    @test norm(ν - ν_) < 1e-8
+
+
+    PLOT && image(reshape(ν, (m, n)))
     μ = trajectory((t[1] => Gaussian(ν, P),))
 
     for segment in 3:-1:1
         for i in 2:l
             t = t - dt
             P = P .- dt*(B*P + P*Bt - a)
-            ν = ν - B*ν*dt
+            droptol!(P, droptol)
+            @show sparsity(P)
+            ν = ν - B*(ν*dt)
             push!(μ, t => Gaussian(ν, P))
         end
         t = t - dt
         P = P - dt*(B*P + P*Bt - a)
         ν = ν - B*ν*dt
-        (ν, P), _ = Kalman.correct(Kalman.JosephForm(), Gaussian(ν, P), (Gaussian(vec(meteosat[segment]), R), H))
+        #(ν, P), _ = Kalman.correct(Kalman.JosephForm(), Gaussian(ν, P), (Gaussian(vec(meteosat[segment]), R), H))
+        (ν, P), _ = BridgeSPDE.correct((ν, P), (vec(meteosat[segment]), sparse(R, d,d)), H, droptol=droptoli)
+        droptol!(P, droptol)
         push!(μ, t => Gaussian(ν, P))
     end
 
@@ -105,10 +122,10 @@ for iter in 1:3
     Ps = reverse(cov.(μ.x))
 
     rs(x) = reshape(x, (m, n))
-    image(hvcat(shape, rs.(νs)...))
+    PLOT && image(hvcat(shape, rs.(νs)...))
     x0 = νs[1]
     #x = rand(Gaussian(νs[1], Symmetric(Ps[1])))
-    img(νs[end-10])
+    PLOT && img(νs[end-10])
     x = copy(x0); X = trajectory((ts[1]=>reshape(x, (m,n)),))
     for i in 2:length(μ)
         x = x + dt*(B*x) + σ^2*((Ps[i])\(νs[i] - x))*dt  #+ σ*sqrt(dt)*randn(d)
@@ -132,11 +149,11 @@ for iter in 1:3
     end
     @show θ1, θ2 = cholesky(Symmetric(Γ)).L\μ0
 
-    image(hvcat(shape, X.x...))
+    PLOT && image(hvcat(shape, X.x...))
 
     m3 = quantile(flatten(X.x), 0.17)
 
-    image(X.x[1])
+    PLOT && image(X.x[1])
     X.x[10]
     for i in eachindex(X.x)
         out = reshape(clamp.(X.x[i], 0, 1), (m, n))
@@ -150,3 +167,4 @@ for iter in 1:3
     end
 end
 #run(`convert -delay 10 -resize 400% -loop 0 all{1..60}.png out.gif`)
+#  convert -delay 10 -resize 400% -loop 0 output/all3-{1..60}.png out.gif
