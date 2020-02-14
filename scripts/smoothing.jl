@@ -13,7 +13,7 @@ using GaussianDistributions
 using Trajectories
 using Colors
 PLOT = false
-SAVE = false
+SAVE = true
 
 inner(x::Vector) = dot(x,x)
 inner(x::Vector, y::Vector) = dot(x,y)
@@ -28,7 +28,7 @@ inner(x) = x'*x
 
 const F0 = Float32
 
-downscale = 2 # was 4
+downscale = 4 # was 4
 meteosat = [ downsample(F0.(FileIO.load(joinpath(@__DIR__, "..","data", "meteosatf$frame.png"))), downscale) for frame in [33, 35, 40, 45]]
 y = meteosat[1]
 PLOT && image(y, scale_plot = false)
@@ -49,14 +49,14 @@ mat(x) = reshape(x, (m, n))
 PLOT && image(hcat( meteosat...))
 
 θ1, θ2 = [2.5, 5.4]*2/downscale # left, down
-#
+θ1, θ2 = [2.0300694633216403, 2.347520351947699] # with scale 8
 shi = vec(meteosat[1])
 shi = (I + J1)^ceil(Int, θ1*T)*shi
 shi = (I + J2t)^ceil(Int, θ2*T)*shi
-if PLOT
+if true #PLOT
     p = image([meteosat[1].*(1 .- boundary(mat(meteosat[1].>0.3)))
        meteosat[end].*(1 .- boundary(mat(shi.>0.3)))])
-    #save("shift.png", p)
+    save("shift.png", p)
 end
 
 d = m*n
@@ -84,8 +84,8 @@ dt = F0(Δt / l)
 droptol = F0(1e-8)
 droptoli = F0(1e-8)
 
-θ1, θ2 = F0(0.0), F0(0.0)
-for iter in 1:10
+#θ1, θ2 = F0(0.0), F0(0.0)
+for iter in 1:1
     global θ1, θ2
     t = T
     ν, P = copy(q0), copy(Q0)
@@ -139,7 +139,7 @@ for iter in 1:10
     x = copy(x0);
     X = trajectory((ts[1]=>reshape(x, (m,n)),))
     for i in 2:length(μ)
-        x = x + dt*(B*x) + σ^2*(cholesky(Hermitian(Ps[i]))\(νs[i] - x))*dt # + σ*sqrt(dt)*randn(d)
+        x = x + dt*(B*x) + σ^2*(cholesky(Hermitian(Ps[i]))\(νs[i] - x))*dt #+ σ*sqrt(dt)*randn(d)
         t += dt
         push!(X, ts[i] => reshape(x, (m, n)))
     end
