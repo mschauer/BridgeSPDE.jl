@@ -13,7 +13,7 @@ function correct(u::T, v, H; droptol=1e-7) where T
         K = droptol!(sparse(K1), droptol)
         @show sparsity(K)
     elseif false # Sparse cholesky and dense H*Ppred
-        K = (cholesky(Hermitian(S))\(H*Ppred))' # Kalman gain
+        K = (cholesky(Hermitian(S))\(H*Ppred))' # Kalman gain # sparse backsolve is missing
         @show sparsity(K')
         droptol!(K', droptol)
         @show sparsity(K')
