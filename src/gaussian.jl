@@ -7,12 +7,12 @@ function correct(u::T, v, H; droptol=1e-7) where T
     S = (H*Ppred*H' + R) # innovation covariance
 
     # not sure what is the right thing.
-    if true # Dense matrix algebra
+    if false # Dense matrix algebra
         K1 = Ppred*H'*inv(Matrix(S)) # Kalman gain
         @show sparsity(K1)
         K = droptol!(sparse(K1), droptol)
         @show sparsity(K)
-    elseif false # Sparse cholesky and dense H*Ppred
+    elseif true # Sparse cholesky and dense H*Ppred
         K = (cholesky(Hermitian(S))\(H*Ppred))' # Kalman gain # sparse backsolve is missing
         @show sparsity(K')
         droptol!(K', droptol)

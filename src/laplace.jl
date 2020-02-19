@@ -83,3 +83,32 @@ function boundary(A)
     end
     B
 end
+
+
+function downop(T, m, n)
+    S = sparse(T(0.0)I, (n÷2)*(m÷2), n*m)
+    linearj = LinearIndices((1:m, 1:n))
+    lineari = LinearIndices((1:m÷2, 1:n÷2))
+
+    for i in 2:2:m
+        for j in 2:2:n
+            S[lineari[i÷2,j÷2], linearj[i, j]] = 1/4
+            S[lineari[i÷2,j÷2], linearj[i-1, j]] = 1/4
+            S[lineari[i÷2,j÷2], linearj[i, j-1]] = 1/4
+            S[lineari[i÷2,j÷2], linearj[i-1, j-1]] = 1/4
+        end
+    end
+    S
+end
+#=
+m = n = 8
+L = downop(F0, m, n); Λ = gridlaplacian(F0, m, n); Λ2 = gridlaplacian(F0, m÷2, n÷2)
+heatmap([Matrix(8L*Λ*L') Matrix(Λ2) Matrix(8L*Λ*L' - Λ2)])
+L = downop(F0, m, n); Λ = gridlaplacian(F0, m, n) + I/2; Λ2 = gridlaplacian(F0, m÷2, n÷2) + I
+invm(x) = inv(Matrix(x))
+F = Float64
+L = downop(F, m, n); Λ = gridlaplacian(F, m, n)/2 + I/4; Λ2 = gridlaplacian(F, m÷2, n÷2) + I
+heatmap([Matrix(L*invm(Λ)*L') Matrix(invm(Λ2)) Matrix(L*invm(Λ)*L' - invm(Λ2))])
+mean(diag(L*invm(Λ)*L') - diag(invm(Λ2)))
+.32007- .32008
+=#
