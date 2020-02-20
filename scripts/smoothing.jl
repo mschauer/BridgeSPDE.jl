@@ -75,7 +75,7 @@ mat(x) = reshape(x, (m, n))
 PLOT && image(hcat( meteosat...))
 
 #=
-θ1, θ2 = Float32[0.080375865, 0.7903045] # left, down
+θ1, θ2 = θs[end] # left, down
 shi = vec(meteosat[1])
 shi = (I + J1/F0(scale))^ceil(Int, θ1*F0(scale)*T)*shi
 shi = (I + J2t/F0(scale))^ceil(Int, θ2*F0(scale)*T)*shi
@@ -94,8 +94,8 @@ Q0 = zeros(F0, d, d) + F0(2.0)^2*I
 
 # nominally, the noise should scale with sqrt(pixel in mean)
 # the noise is not really independent, so actually it doesn't scale (so much)
-R = F0(0.05)^2*scale*I
-σ = F0(0.1*scale)
+R = F0(0.05)^2*I*scale
+σ = F0(0.08*scale)
 H = I
 
 a = σ^2*I
@@ -108,9 +108,11 @@ T = sum(l)*dt
 droptol = F0(1e-8)
 droptoli = F0(1e-8)
 
-iters = 1:10
-saveiters = [1, 5, 10, 15]
-#θs = [(F0(0), F0(0))] # 2.4448118, 8.101286
+iters = 1:15
+saveiters = [5, 10, 15]
+if scale == 1
+    θs = [(F0(0), F0(0))] # 2.4448118, 8.101286
+end
 for iter in iters
     #iter = 1
     #begin
@@ -261,3 +263,8 @@ println("Done.")
 # ffmpeg -r 40 -f image2 -i output/img1-%d.png -vcodec libx264 -crf 25 -vf "pad=ceil(iw/2)*2:ceil(ih/2)*2" -pix_fmt yuv420p img1.mp4
 lines(first.(θs));
 lines!(last.(θs))
+
+lines(first.(θs)*scale*T);
+lines!(last.(θs)*scale*T)
+
+#writedlm("thetas.txt", [first.(θs)*scale*T last.(θs)*scale*T])
