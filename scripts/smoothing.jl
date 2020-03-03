@@ -4,14 +4,13 @@
 
 # install and make local copy
 import Pkg
-Pkg.add(Pkg.PackageSpec(url="https://github.com/mschauer/BridgeSPDE.jl"))
+Pkg.activate(@__DIR__)
 Pkg.develop(Pkg.PackageSpec(url="https://github.com/mschauer/BridgeSPDE.jl"))
 
 # move to package directory
 cd(joinpath(Pkg.devdir(), "BridgeSPDE"))
 
 # instantiate reproducible environment
-Pkg.activate("scripts")
 
 # run script
 # include("scripts/smoothing.jl") #script is running
@@ -45,7 +44,7 @@ inner(x) = x'*x
 
 const F0 = Float32
 
-θs = [(F0(0), F0(0))] 
+θs = [(F0(0), F0(0))]
 for downscale in [8, 4, 3]
     Random.seed!(1)
 
