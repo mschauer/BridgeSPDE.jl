@@ -53,7 +53,9 @@ version = "0.10.0"
 
 [[BridgeSPDE]]
 deps = ["Bridge", "Colors", "DynamicIterators", "FileIO", "GaussianDistributions", "IterativeSolvers", "Kalman", "LinearAlgebra", "Printf", "Random", "SparseArrays", "Statistics", "Trajectories"]
-path = "/Users/smoritz/.julia/dev/BridgeSPDE"
+git-tree-sha1 = "245cb696441869bc606a769f9d81a958b514a516"
+repo-rev = "master"
+repo-url = "https://github.com/mschauer/BridgeSPDE.jl"
 uuid = "359c7786-00bc-11ea-1a8f-9ba3cb2ca549"
 version = "0.1.0"
 
