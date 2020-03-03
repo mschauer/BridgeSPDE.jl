@@ -7,7 +7,7 @@ import Pkg
 
 # instantiate reproducible environment
 Pkg.activate(@__DIR__)
-Pkg.develop(Pkg.PackageSpec(url="https://github.com/mschauer/BridgeSPDE.jl"))
+#Pkg.develop(Pkg.PackageSpec(url="https://github.com/mschauer/BridgeSPDE.jl"))
 
 # move to package directory
 cd(joinpath(Pkg.devdir(), "BridgeSPDE"))
