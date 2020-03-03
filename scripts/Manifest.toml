@@ -53,8 +53,8 @@ version = "0.10.0"
 
 [[BridgeSPDE]]
 deps = ["Bridge", "Colors", "DynamicIterators", "FileIO", "GaussianDistributions", "IterativeSolvers", "Kalman", "LinearAlgebra", "Printf", "Random", "SparseArrays", "Statistics", "Trajectories"]
-git-tree-sha1 = "f6e21bfb946491912b3f352b90f3e5d075be873e"
-repo-rev = "master"
+git-tree-sha1 = "9b317da16ff05195a49f3c1889aa11b12f3bce46"
+repo-rev = "arxiv_v2"
 repo-url = "https://github.com/mschauer/BridgeSPDE.jl"
 uuid = "359c7786-00bc-11ea-1a8f-9ba3cb2ca549"
 version = "0.1.0"
