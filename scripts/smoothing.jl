@@ -1,6 +1,17 @@
 
 # Instructions
-# In Julia 1.3.1 terminal run
+#
+# Script should be run within the package folder.
+# To reproduce results, checkout the github package
+# https://github.com/mschauer/BridgeSPDE.jl
+# with tag arxiv_v2
+
+## From the shell:
+# git clone https://github.com/mschauer/BridgeSPDE.jl
+# git checkout tags/arxiv_v2
+
+## From julia:
+# include("scripts/smoothing.jl")
 
 # install and make local copy
 import Pkg
@@ -10,11 +21,9 @@ Pkg.activate(@__DIR__)
 #Pkg.develop(Pkg.PackageSpec(url="https://github.com/mschauer/BridgeSPDE.jl"))
 
 # move to package directory
-cd(joinpath(Pkg.devdir(), "BridgeSPDE"))
+#cd(joinpath(Pkg.devdir(), "BridgeSPDE"))
+cd(joinpath(@__DIR__, ".."))
 
-
-# run script
-# include("scripts/smoothing.jl") #script is running
 
 using Revise
 using Test
