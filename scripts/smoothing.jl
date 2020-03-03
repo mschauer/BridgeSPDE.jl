@@ -33,7 +33,7 @@ const F0 = Float32
 
 #downscale = 4 # was 4, can be 2, 4, 8
 #scale = 8 ÷ downscale
-downscale = 3 # was 4, can be 3, 4, 8
+downscale = 8 # was 4, can be 3, 4, 8
 scale = F0(8 / downscale)
 
 
@@ -64,11 +64,12 @@ m, n = size(y)
 
 Δt = F0(1.0)
 T = Δt*(length(meteosat)-1)
-
+J = gridderiv(F0, m, n)
+Λ0 = gridlaplacian(F0, m, n)
+@test norm(Λ0 + (J[1]+J[2]+J[3]+J[4])) == 0
 
 J1 = gridderiv(F0, m, n)[1]*F0(scale)
 J2t = gridderiv(F0, m, n)[4]*F0(scale)
-
 img(x) = image(reshape(x, (m, n)))
 mat(x) = reshape(x, (m, n))
 
@@ -87,7 +88,7 @@ end
 =#
 
 d = m*n
-Λ = (gridlaplacian(F0, m, n) + 0.1f0 * I)*downscale
+Λ = (Λ0 + 0.1f0 * I)*downscale
 
 q0 = F0(0.5) .+ zeros(F0, d)
 Q0 = zeros(F0, d, d) + F0(2.0)^2*I
@@ -99,10 +100,13 @@ R = F0(0.05)^2*I*scale
 H = I
 
 a = σ^2*I
+σᶥ = sparse(cholesky(Λ0+0.2I).L)
+heatmap([randn(m,n) reshape(σᶥ'\randn(m*n), m, n)])
 
+#L = randn(5,5)
+#heatmap([inv(L*L') cov((L'\randn(5, 10000))')])
 
-
-l = scale*7*[2,5,5] # not equidistant
+l = floor(Int,scale)*7*[2,5,5] # not equidistant
 dt = F0(Δt / l[2])
 T = sum(l)*dt
 droptol = F0(1e-8)
@@ -245,7 +249,7 @@ for iter in iters
             run(`ffmpeg -y -r 40 -f image2 -i output$downscale/img$iter-%d.png -vcodec libx264 -crf 25 -vf "pad=ceil(iw/2)*2:ceil(ih/2)*2" -pix_fmt yuv420p img$downscale-$iter.mp4`)
             PLOT && run(`ffmpeg -y -r 40 -f image2 -i output$downscale/surf$iter-%d.png -vcodec libx264 -crf 25  -pix_fmt yuv420p surf$downscale-$iter.mp4`)
             PLOT && run(`ffmpeg -y -r 40 -f image2 -i output$downscale/surfr$iter-%d.png -vcodec libx264 -crf 25  -pix_fmt yuv420p surfr$downscale-$iter.mp4`)
-
+            # "-vf crop=900:600:190:100"
 
         end
     end
@@ -268,3 +272,20 @@ lines(first.(θs)*scale*T);
 lines!(last.(θs)*scale*T)
 
 #writedlm("thetas.txt", [first.(θs)*scale*T last.(θs)*scale*T])
+
+for iter in saveiters
+#    #run(`ffmpeg -y -r 40 -f image2 -i output$downscale/img$iter-%d.png -vcodec libx264 -crf 25 -vf "pad=ceil(iw/2)*2:ceil(ih/2)*2" -pix_fmt yuv420p img$downscale-$iter.mp4`)
+#    run(`ffmpeg -y -r 40 -f image2 -i output$downscale/surf$iter-%d.png -vcodec libx264 -vf crop=900:600:190:165 -crf 25  -pix_fmt yuv420p surf$downscale-$iter.mp4`)
+#    run(`ffmpeg -y -r 40 -f image2 -i output$downscale/surfr$iter-%d.png -vcodec libx264 -vf crop=900:600:190:165 -crf 25  -pix_fmt yuv420p surfr$downscale-$iter.mp4`)
+    run(`ffmpeg -y -r 40 -f image2 -i output$downscale/surf$iter-%d.png -vcodec libx264  -crf 25  -pix_fmt yuv420p output$downscale/surf$downscale-$iter.mp4`)
+    run(`ffmpeg -y -r 40 -f image2 -i output$downscale/surfr$iter-%d.png -vcodec libx264  -crf 25  -pix_fmt yuv420p output$downscale/surfr$downscale-$iter.mp4`)
+end
+
+# for f in surf*; do convert -crop 900x600+190+165 "$f" "$f"; done
+# for f in meteosurf*; do convert -crop 900x600+190+165 "$f" "$f"; done
+
+thetas = readdlm("thetas.txt")
+
+p1 = lines(first.(thetas));
+p2 = lines(last.(thetas));
+vbox(p1, p2)
