@@ -4,13 +4,14 @@
 
 # install and make local copy
 import Pkg
+
+# instantiate reproducible environment
 Pkg.activate(@__DIR__)
 Pkg.develop(Pkg.PackageSpec(url="https://github.com/mschauer/BridgeSPDE.jl"))
 
 # move to package directory
 cd(joinpath(Pkg.devdir(), "BridgeSPDE"))
 
-# instantiate reproducible environment
 
 # run script
 # include("scripts/smoothing.jl") #script is running
